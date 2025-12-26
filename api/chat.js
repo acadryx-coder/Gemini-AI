@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
+  // LOG: This helps us see if the function is running
+  console.log("API function was called at:", new Date().toISOString());
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -13,6 +16,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
+    // LOG: Let's see the message and check for the API key
+    console.log("Processing message:", message.substring(0, 50));
+    console.log("GEMINI_API_KEY exists:", !!process.env.GEMINI_API_KEY);
+
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
@@ -21,6 +28,9 @@ export default async function handler(req, res) {
     const result = await model.generateContent(message);
     const response = await result.response;
     const reply = response.text();
+
+    // LOG: Success
+    console.log("Successfully generated reply");
 
     // Here you would save to Supabase if saveChat is true
     // We'll implement that in next phase
@@ -31,11 +41,11 @@ export default async function handler(req, res) {
     });
     
   } catch (error) {
-    console.error('Error:', error);
+    // LOG: The actual error
+    console.error('Full Error:', error);
     return res.status(500).json({ 
       error: 'Failed to process message',
       details: error.message 
     });
   }
-}
-
+                }
